@@ -3,7 +3,7 @@ from torch import nn
 from ops.basic_ops import ConsensusModule, Identity
 from transforms import *
 from torch.nn.init import normal, constant
-
+from log import log
 class TSN(nn.Module):
     def __init__(self, num_class, num_segments, modality,
                  base_model='resnet101', new_length=None,
@@ -26,7 +26,7 @@ class TSN(nn.Module):
         else:
             self.new_length = new_length
 
-        print(("""
+        log.l.info(("""
 Initializing TSN with base model: {}.
 TSN Configurations:
     input_modality:     {}
@@ -41,13 +41,13 @@ TSN Configurations:
         feature_dim = self._prepare_tsn(num_class)
 
         if self.modality == 'Flow':
-            print("Converting the ImageNet model to a flow init model")
+            log.l.info("Converting the ImageNet model to a flow init model")
             self.base_model = self._construct_flow_model(self.base_model)
-            print("Done. Flow model ready...")
+            log.l.info("Done. Flow model ready...")
         elif self.modality == 'RGBDiff':
-            print("Converting the ImageNet model to RGB+Diff init model")
+            log.l.info("Converting the ImageNet model to RGB+Diff init model")
             self.base_model = self._construct_diff_model(self.base_model)
-            print("Done. RGBDiff model ready.")
+            log.l.info("Done. RGBDiff model ready.")
 
         self.consensus = ConsensusModule(consensus_type)
 
@@ -122,7 +122,7 @@ TSN Configurations:
         super(TSN, self).train(mode)
         count = 0
         if self._enable_pbn:
-            print("Freezing BatchNorm2D except the first one.")
+            log.l.info("Freezing BatchNorm2D except the first one.")
             for m in self.base_model.modules():
                 if isinstance(m, nn.BatchNorm2d):
                     count += 1

@@ -1,5 +1,5 @@
 import argparse
-import time
+import time,sys
 
 import numpy as np
 import torch.nn.parallel
@@ -10,11 +10,11 @@ from dataset import TSNDataSet
 from models import TSN
 from transforms import *
 from ops import ConsensusModule
-
+from log import log
 # options
 parser = argparse.ArgumentParser(
     description="Standard video-level testing")
-parser.add_argument('dataset', type=str, choices=['ucf101', 'hmdb51', 'kinetics'])
+parser.add_argument('dataset', type=str, choices=['mm','ucf101', 'hmdb51', 'kinetics'])
 parser.add_argument('modality', type=str, choices=['RGB', 'Flow', 'RGBDiff'])
 parser.add_argument('test_list', type=str)
 parser.add_argument('weights', type=str)
@@ -35,6 +35,7 @@ parser.add_argument('--flow_prefix', type=str, default='')
 
 args = parser.parse_args()
 
+log.l.info('Input command:\n python '+ ' '.join(sys.argv))
 
 if args.dataset == 'ucf101':
     num_class = 101
@@ -42,6 +43,8 @@ elif args.dataset == 'hmdb51':
     num_class = 51
 elif args.dataset == 'kinetics':
     num_class = 400
+elif args.dataset == 'mm':
+    num_class = 500
 else:
     raise ValueError('Unknown dataset '+args.dataset)
 
@@ -51,7 +54,7 @@ net = TSN(num_class, 1, args.modality,
           dropout=args.dropout)
 
 checkpoint = torch.load(args.weights)
-print("model epoch {} best prec@1: {}".format(checkpoint['epoch'], checkpoint['best_prec1']))
+log.l.info("model epoch {} best prec@1: {}".format(checkpoint['epoch'], checkpoint['best_prec1']))
 
 base_dict = {'.'.join(k.split('.')[1:]): v for k,v in list(checkpoint['state_dict'].items())}
 net.load_state_dict(base_dict)
@@ -128,7 +131,7 @@ for i, (data, label) in data_gen:
     rst = eval_video((i, data, label))
     output.append(rst[1:])
     cnt_time = time.time() - proc_start_time
-    print('video {} done, total {}/{}, average {} sec/video'.format(i, i+1,
+    log.l.info('video {} done, total {}/{}, average {} sec/video'.format(i, i+1,
                                                                     total_num,
                                                                     float(cnt_time) / (i+1)))
 
@@ -144,9 +147,9 @@ cls_hit = np.diag(cf)
 
 cls_acc = cls_hit / cls_cnt
 
-print(cls_acc)
+log.l.info(cls_acc)
 
-print('Accuracy {:.02f}%'.format(np.mean(cls_acc) * 100))
+log.l.info('Accuracy {:.02f}%'.format(np.mean(cls_acc) * 100))
 
 if args.save_scores is not None:
 

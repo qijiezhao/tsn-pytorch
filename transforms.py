@@ -5,7 +5,7 @@ import numpy as np
 import numbers
 import math
 import torch
-
+from log import log
 
 class GroupRandomCrop(object):
     def __init__(self, size):
@@ -301,7 +301,7 @@ if __name__ == "__main__":
         )]
     )
 
-    im = Image.open('../tensorflow-model-zoo.torch/lena_299.png')
+    im = Image.open('tf_model_zoo/lena_299.png')
 
     color_group = [im] * 3
     rst = trans(color_group)
@@ -317,4 +317,4 @@ if __name__ == "__main__":
             mean=[.485, .456, .406],
             std=[.229, .224, .225])
     ])
-    print(trans2(color_group))
+    log.l.info(trans2(color_group))
