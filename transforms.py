@@ -132,15 +132,15 @@ class GroupMultiScaleCrop(object):
     def __init__(self, input_size, scales=None, max_distort=1, fix_crop=True, more_fix_crop=True):
         self.scales = scales if scales is not None else [1, 875, .75, .66]
         self.max_distort = max_distort
-        self.fix_crop = fix_crop
+        self.fix_crop = fix_crop  # if False, random
         self.more_fix_crop = more_fix_crop
         self.input_size = input_size if not isinstance(input_size, int) else [input_size, input_size]
         self.interpolation = Image.BILINEAR
 
     def __call__(self, img_group):
 
-        im_size = img_group[0].size
-
+        im_size = img_group[0].size  # this is imgs' size, however, for network, 224 is 2dconvs, 112 is 3dconvs.
+        # in this experiment im_size = 340*256
         crop_w, crop_h, offset_w, offset_h = self._sample_crop_size(im_size)
         crop_img_group = [img.crop((offset_w, offset_h, offset_w + crop_w, offset_h + crop_h)) for img in img_group]
         ret_img_group = [img.resize((self.input_size[0], self.input_size[1]), self.interpolation)
@@ -168,7 +168,7 @@ class GroupMultiScaleCrop(object):
             h_offset = random.randint(0, image_h - crop_pair[1])
         else:
             w_offset, h_offset = self._sample_fix_offset(image_w, image_h, crop_pair[0], crop_pair[1])
-
+            # for 3dconv network, arguments is (340,256,112,112)
         return crop_pair[0], crop_pair[1], w_offset, h_offset
 
     def _sample_fix_offset(self, image_w, image_h, crop_w, crop_h):

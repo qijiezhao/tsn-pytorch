@@ -1,9 +1,11 @@
 import argparse
 parser = argparse.ArgumentParser(description="PyTorch implementation of Temporal Segment Networks")
-parser.add_argument('dataset', type=str, choices=['ucf101', 'hmdb51', 'kinetics','mm'])
+parser.add_argument('dataset', type=str, choices=['ucf101', 'hmdb51', 'kinetics','mm','thumos14'])
 parser.add_argument('modality', type=str, choices=['RGB', 'Flow', 'RGBDiff'])
 parser.add_argument('train_list', type=str)
 parser.add_argument('val_list', type=str)
+parser.add_argument('--data_type',default='frame',type=str,choices=['frame','video','feature']) #feature is unimplement yet
+parser.add_argument('--video_root',default='../data/ucf101/videos',type=str)
 
 # ========================= Model Configs ==========================
 parser.add_argument('--arch', type=str, default="resnet101")
