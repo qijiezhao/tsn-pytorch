@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix,average_precision_score
 
 def get_grad_hook(name):
     def hook(m, grad_in, grad_out):
@@ -33,3 +33,33 @@ def class_accuracy(prediction, label):
     mean_cls_acc = cls_acc.mean()
 
     return cls_acc, mean_cls_acc
+
+def get_AP_video(rst,label,gt_labels):
+    gt_labels_to1=np.array([1 if (_==label and label!=0) else 0 for _ in gt_labels])
+    rst_to1=np.array(rst[_][label] for _ in range(rst))
+
+    AP=average_precision_score(gt_labels_to1,rst_to1)
+    return AP
+
+def get_PSP(source_segment,target_segment):
+    max_min=max(source_segment[0],target_segment[0])
+    min_max=min(source_segment[1],target_segment[1])
+    if min_max<=max_min:
+        return 0
+    else:
+        return(min_max-max_min)/float(source_segment[1]-source_segment[0])
+    
+
+def PSP_oneVSall(source_segment,target_segments):
+    '''
+    source_segment is one segment
+    target_segments is multi-segments
+    return the max PSP
+
+    '''
+    max_PSP=0
+    for posi_segment in target_segments:
+        PSP=get_PSP(source_segment,posi_segment)
+        if PSP>max_PSP:
+            max_PSP=PSP
+    return max_PSP
